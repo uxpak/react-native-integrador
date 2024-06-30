@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TextInput, View, Button, Alert } from 'react-native';
-import {Home} from "../home/home"
+import { StyleSheet, TextInput, View, Button, Alert } from 'react-native';
 
-const Login = () => {
+const Login = ({ navigation }) => {
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
 
