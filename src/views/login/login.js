@@ -6,13 +6,46 @@ const Login = ({ navigation }) => {
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Aquí puedes agregar la lógica para validar el inicio de sesión
-    if (dni === 'usuario' && password === 'contraseña') {
-      Alert.alert('¡Inicio de sesión exitoso!');
-      navigation.navigate('Home'); // Navegar a la pantalla Home
-    } else {
-      Alert.alert('Error', 'DNI o contraseña incorrectos');
+  const ipAddresses = ['http://192.168.0.105:8080', 'http://192.168.0.6:8080', 'http://192.168.18.40:8080']; // Agrega las direcciones IP adicionales aquí
+  const maxAttempts = ipAddresses.length;
+
+  const handleLogin = async () => {
+    let success = false;
+    let attempts = 0;
+
+    while (!success && attempts < maxAttempts) {
+      try {
+        const response = await fetch(`${ipAddresses[attempts]}/api/auth/loginUser`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ dni, password }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.token) {
+            Alert.alert('¡Inicio de sesión exitoso!');
+            // Guarda el token en AsyncStorage u otro sistema de gestión de sesión
+            navigation.navigate('Home'); // Navegar a la pantalla Home
+            success = true;
+          } else {
+            Alert.alert('Error', 'DNI o contraseña incorrectos');
+          }
+        } else {
+          attempts++;
+          if (attempts === maxAttempts) {
+            Alert.alert('Error', 'Fallo en la conexión con el servidor');
+          }
+        }
+      } catch (error) {
+        attempts++;
+        if (attempts === maxAttempts) {
+          Alert.alert('Error', 'Algo salió mal. Por favor, intenta de nuevo.');
+          console.error('Error en el inicio de sesión:', error);
+        }
+      }
     }
   };
 
