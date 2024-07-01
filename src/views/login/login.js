@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, TextInput, View, Button, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Importa AsyncStorage desde el paquete adecuado
 
 const Login = ({ navigation }) => {
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
 
-  const ipAddresses = ['http://192.168.0.105:8080', 'http://192.168.0.6:8080', 'http://192.168.18.40:8080']; // Agrega las direcciones IP adicionales aquí
+  const ipAddresses = ['http://192.168.0.105:8080', 'http://192.168.0.6:8080', 'http://192.168.18.40:8080'];
   const maxAttempts = ipAddresses.length;
 
   const handleLogin = async () => {
@@ -26,9 +27,9 @@ const Login = ({ navigation }) => {
         if (response.ok) {
           const data = await response.json();
           if (data.token) {
+            await AsyncStorage.setItem('token', data.token); // Guarda el token en AsyncStorage
             Alert.alert('¡Inicio de sesión exitoso!');
-            // Guarda el token en AsyncStorage u otro sistema de gestión de sesión
-            navigation.navigate('Home'); // Navegar a la pantalla Home
+            navigation.navigate('Home'); // Navega a la pantalla Home
             success = true;
           } else {
             Alert.alert('Error', 'DNI o contraseña incorrectos');

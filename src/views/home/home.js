@@ -1,82 +1,107 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
-import axios from 'axios';
+import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const HomeScreen = ({ navigation }) => {
-  const [citas, setCitas] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Home = () => {
+  const [appointmentData, setAppointmentData] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8080/api/appointment')
-      .then(response => {
-        setCitas(response.data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching appointments:', error);
-        setLoading(false);
-      });
+    const getToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
+          fetchAppointments(token);
+        } else {
+          Alert.alert('Error', 'No se encontró un token válido. Por favor, inicia sesión.');
+        }
+      } catch (error) {
+        console.error('Error al obtener el token:', error);
+        Alert.alert('Error', 'Algo salió mal al obtener el token.');
+      }
+    };
+
+    getToken();
+
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
+  const fetchAppointments = async (token) => {
+    try {
+      const response = await fetch(`http://192.168.0.6:8080/api/appointment/71076855`, {
+        method: 'GET',
+        headers: {
+          'token': token,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Datos de la cita recibidos:', data);
+        if (Array.isArray(data) && data.length > 0) {
+          setAppointmentData(data);
+        } else {
+          Alert.alert('Error', 'La lista de citas está vacía o no es válida.');
+        }
+      } else {
+        console.log('Respuesta del servidor no OK:', response.status);
+        Alert.alert('Error', 'No se pudo obtener la lista de citas.');
+      }
+    } catch (error) {
+      console.error('Error al obtener citas:', error);
+      Alert.alert('Error', 'Algo salió mal. Por favor, intenta de nuevo.');
+    }
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Citas Médicas</Text>
-        {citas.map((cita, index) => (
-          <View key={index} style={styles.citaContainer}>
-            <Text style={styles.citaText}>Fecha: {new Date(cita.date).toLocaleDateString()}</Text>
-            <Text style={styles.citaText}>Hora: {cita.time}</Text>
-            <Text style={styles.citaText}>Razón: {cita.reason}</Text>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <Text style={styles.title}>Lista de Citas:</Text>
+      <ScrollView style={styles.scrollView}>
+        {appointmentData.length > 0 ? (
+          appointmentData.map((appointment, index) => (
+            <View key={index} style={styles.appointmentContainer}>
+              <Text>Razón: {appointment.reason}</Text>
+              <Text>Fecha: {appointment.date}</Text>
+              <Text>Hora: {appointment.time}</Text>
+              <Text>Doctor: {appointment.doctor}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.loadingText}>Cargando citas...</Text>
+        )}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-  },
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 20,
-    textAlign: 'center',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#000000',
+  },
+  scrollView: {
+    width: '100%',
+  },
+  appointmentContainer: {
+    backgroundColor: '#f0f0f0',
+    padding: 20,
+    borderRadius: 10,
     marginBottom: 20,
+    width: '80%',
+    maxWidth: 400,
   },
-  citaContainer: {
-    width: Dimensions.get('window').width - 32,
-    padding: 16,
-    marginVertical: 8,
-    backgroundColor: '#f1f8ff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#C1C0B9',
-  },
-  citaText: {
+  loadingText: {
     fontSize: 16,
-    marginVertical: 4,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    fontStyle: 'italic',
+    color: '#000000',
   },
 });
 
-export default HomeScreen;
+export default Home;
