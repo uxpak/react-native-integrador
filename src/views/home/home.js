@@ -28,7 +28,7 @@ const Home = () => {
 
   const fetchAppointments = async (token, dni) => {
     try {
-      const response = await fetch(`http://192.168.0.6:8080/api/appointment/${dni}`, {
+      const response = await fetch(`http://192.168.18.40:8080/api/appointment/${dni}`, {
         method: 'GET',
         headers: {
           'token': token,
@@ -56,7 +56,7 @@ const Home = () => {
 
   const fetchDoctorData = async (token, dni) => {
     try {
-      const response = await fetch(`http://192.168.0.6:8080/api/doctor/${dni}`, {
+      const response = await fetch(`http://192.168.18.40:8080/api/doctor/${dni}`, {
         method: 'GET',
         headers: {
           'token': token,
@@ -81,15 +81,15 @@ const Home = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Lista de Citas:</Text>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView contentContainerStyle={styles.scrollView}>
         {appointmentData.length > 0 ? (
           appointmentData.map((appointment, index) => (
             <View key={index} style={styles.appointmentContainer}>
-              <Text>Razón: {appointment.reason}</Text>
-              <Text>Fecha: {appointment.date}</Text>
-              <Text>Hora: {appointment.time}</Text>
-              <Text>Doctor: {doctorData.name}</Text>
-              <Text>Especialidad: {doctorData.specialty ? doctorData.specialty.map(specialty => specialty.name).join(', ') : 'N/A'}</Text>
+              <Text style={styles.label}>Razón: <Text style={styles.text}>{appointment.reason}</Text></Text>
+              <Text style={styles.label}>Fecha: <Text style={styles.text}>{appointment.date}</Text></Text>
+              <Text style={styles.label}>Hora: <Text style={styles.text}>{appointment.time}</Text></Text>
+              <Text style={styles.label}>Doctor: <Text style={styles.text}>{doctorData.name}</Text></Text>
+              <Text style={styles.label}>Especialidad: <Text style={styles.text}>{doctorData.specialty ? doctorData.specialty.map(specialty => specialty.name).join(', ') : 'N/A'}</Text></Text>
             </View>
           ))
         ) : (
@@ -103,31 +103,47 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#4C6EF5', // Fondo azul más claro
     alignItems: 'center',
     justifyContent: 'center',
+    paddingTop: 20,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#000000',
+    color: '#FFFFFF',
   },
   scrollView: {
     width: '100%',
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
   },
   appointmentContainer: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#e0f7fa', // Color azul claro
     padding: 20,
     borderRadius: 10,
     marginBottom: 20,
     width: '80%',
     maxWidth: 400,
+    shadowColor: '#FFD700', // Sombra amarilla
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 5, // Elevación para la sombra en Android
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#004d40', // Color verdoso claro
+  },
+  text: {
+    fontWeight: 'normal',
   },
   loadingText: {
     fontSize: 16,
     fontStyle: 'italic',
-    color: '#000000',
+    color: '#FFFFFF',
   },
 });
 
