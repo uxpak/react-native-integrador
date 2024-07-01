@@ -4,13 +4,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Home = () => {
   const [appointmentData, setAppointmentData] = useState([]);
+  const [doctorData, setDoctorData] = useState({});
 
   useEffect(() => {
     const getToken = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        if (token) {
-          fetchAppointments(token);
+        const dni = await AsyncStorage.getItem('dni');
+        if (token && dni) {
+          await fetchAppointments(token, dni);
+          await fetchDoctorData(token, dni); // Aquí obtenemos los datos del doctor
         } else {
           Alert.alert('Error', 'No se encontró un token válido. Por favor, inicia sesión.');
         }
@@ -21,12 +24,11 @@ const Home = () => {
     };
 
     getToken();
-
   }, []);
 
-  const fetchAppointments = async (token) => {
+  const fetchAppointments = async (token, dni) => {
     try {
-      const response = await fetch(`http://192.168.0.6:8080/api/appointment/71076855`, {
+      const response = await fetch(`http://192.168.0.6:8080/api/appointment/${dni}`, {
         method: 'GET',
         headers: {
           'token': token,
@@ -52,6 +54,30 @@ const Home = () => {
     }
   };
 
+  const fetchDoctorData = async (token, dni) => {
+    try {
+      const response = await fetch(`http://192.168.0.6:8080/api/doctor/${dni}`, {
+        method: 'GET',
+        headers: {
+          'token': token,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Datos del doctor recibidos:', data);
+        setDoctorData(data);
+      } else {
+        console.log('Respuesta del servidor no OK:', response.status);
+        Alert.alert('Error', 'No se pudo obtener los datos del doctor.');
+      }
+    } catch (error) {
+      console.error('Error al obtener datos del doctor:', error);
+      Alert.alert('Error', 'Algo salió mal al obtener los datos del doctor.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Lista de Citas:</Text>
@@ -62,7 +88,8 @@ const Home = () => {
               <Text>Razón: {appointment.reason}</Text>
               <Text>Fecha: {appointment.date}</Text>
               <Text>Hora: {appointment.time}</Text>
-              <Text>Doctor: {appointment.doctor}</Text>
+              <Text>Doctor: {doctorData.name}</Text>
+              <Text>Especialidad: {doctorData.specialty ? doctorData.specialty.map(specialty => specialty.name).join(', ') : 'N/A'}</Text>
             </View>
           ))
         ) : (

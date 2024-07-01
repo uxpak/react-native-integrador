@@ -28,6 +28,7 @@ const Login = ({ navigation }) => {
           const data = await response.json();
           if (data.token) {
             await AsyncStorage.setItem('token', data.token); // Guarda el token en AsyncStorage
+            await AsyncStorage.setItem('dni', dni);
             Alert.alert('¡Inicio de sesión exitoso!');
             navigation.navigate('Home'); // Navega a la pantalla Home
             success = true;
